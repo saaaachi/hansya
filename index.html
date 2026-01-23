@@ -5,21 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reaction Level Up</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: sans-serif; color: white; }
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: sans-serif; color: white; touch-action: none; }
         
-        /* 広告エリア：上部(110px)と下部(70px) */
-        #ad-top { position: fixed; top: 0; left: 0; width: 100%; height: 110px; background: #333; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-        #ad-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: #333; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-        #ad-box-1, #ad-box-2 { pointer-events: auto; }
+        /* 広告エリア：高さを150pxに設定（中サイズ対応） */
+        #ad-top, #ad-bottom { 
+            position: fixed; left: 0; width: 100%; height: 150px; 
+            background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; 
+        }
+        #ad-top { top: 0; }
+        #ad-bottom { bottom: 0; }
         
-        /* ゲームエリア */
-        #game-area { margin-top: 110px; height: calc(100vh - 180px); position: relative; width: 100%; background: #222; }
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; font-size: 18px; pointer-events: none; z-index: 10; }
+        iframe { border: none; width: 100%; height: 150px; }
+        
+        /* ゲームエリア：上下150pxを避けて配置 */
+        #game-area { margin-top: 150px; height: calc(100vh - 300px); position: relative; width: 100%; background: #222; overflow: hidden; }
+        
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; pointer-events: none; z-index: 10; text-shadow: 2px 2px 4px #000; }
         
         /* ターゲット（黄色い丸） */
         #target { 
-            position: absolute; width: 70px; height: 70px; background: #fffa00; border-radius: 50%; 
-            display: none; box-shadow: 0 0 20px #fffa00; cursor: pointer;
+            position: absolute; width: 75px; height: 75px; background: #fffa00; border-radius: 50%; 
+            display: none; box-shadow: 0 0 25px #fffa00; cursor: pointer; z-index: 20;
         }
 
         /* スタート画面 */
@@ -27,37 +33,24 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50;
         }
-        #goButton { padding: 15px 40px; font-size: 24px; background: #00d2ff; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; }
-        .best-info { color: #fffa00; margin-top: 15px; font-size: 16px; }
+        #goButton { padding: 15px 40px; font-size: 24px; background: #00d2ff; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px #008eb0; }
+        .best-info { color: #fffa00; margin-top: 20px; font-size: 18px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="ad-top">
-        <div id="ad-box-1">
-            <!-- admax -->
-<script src="https://adm.shinobi.jp/s/cafedc9b1e01fd91eaab0911787aefa5"></script>
-<!-- admax -->
-        </div>
-    </div>
-
-    <div id="ad-bottom">
-        <div id="ad-box-2">
-            <!-- admax -->
-<script src="https://adm.shinobi.jp/s/cc9f63690a05ff8a24610899f8c4b8ab"></script>
-<!-- admax -->
-        </div>
-    </div>
+    <div id="ad-top"><iframe id="frame-top" src="ad.html"></iframe></div>
+    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
 
     <div id="game-area">
         <div id="ui">LV: <span id="lv">1</span> | BEST: <span id="best">1</span></div>
         <div id="target"></div>
         
         <div id="startScreen">
-            <h1 style="color:#00d2ff;">REACTION LV</h1>
+            <h1 style="color:#00d2ff; margin-bottom: 10px;">REACTION LV</h1>
             <p>現れる丸を素早くタップ！</p>
-            <button id="goButton">START</button>
-            <div class="best-info">あなたの最高記録: LV <span id="best2">1</span></div>
+            <button id="goButton">GAME START</button>
+            <div class="best-info">BEST RECORD: LV <span id="best2">1</span></div>
         </div>
     </div>
 
@@ -70,12 +63,10 @@
         const gameArea = document.getElementById("game-area");
 
         let level = 1;
-        // セーブデータの読み込み（reaction_best という名前で保存）
         let bestLevel = localStorage.getItem("reaction_best") || 1;
         let gameActive = false;
         let timer;
 
-        // 画面に最高記録を表示
         bestDisp.innerText = bestLevel;
         bestDisp2.innerText = bestLevel;
 
@@ -86,10 +77,13 @@
             nextStep();
         };
 
-        target.onclick = () => {
+        // pointerdown を使って反応速度を向上（スマホ対応）
+        target.onpointerdown = (e) => {
+            e.preventDefault();
+            if(!gameActive) return;
             clearTimeout(timer);
             level++;
-            // 最高記録を更新したらセーブ
+            
             if(level > bestLevel) {
                 bestLevel = level;
                 localStorage.setItem("reaction_best", bestLevel);
@@ -105,35 +99,35 @@
             
             // 出現までの待ち時間
             setTimeout(() => {
-                const maxX = gameArea.clientWidth - 80;
-                const maxY = gameArea.clientHeight - 80;
+                if(!gameActive) return;
+                const maxX = gameArea.clientWidth - 85;
+                const maxY = gameArea.clientHeight - 85;
                 target.style.left = Math.random() * maxX + "px";
                 target.style.top = Math.random() * maxY + "px";
                 target.style.display = "block";
 
-                // レベルに応じて制限時間を短くする調整（ここが難易度！）
-                const limit = Math.max(350, 1500 - (level * 60));
+                // 制限時間の計算（レベルが上がるとシビアに）
+                const limit = Math.max(300, 1500 - (level * 65));
                 
                 timer = setTimeout(() => {
                     gameActive = false;
-                    alert("GAME OVER!\nあなたの到達レベル: " + level);
+                    alert("GAME OVER!\nREACHED LEVEL: " + level);
                     location.reload();
                 }, limit);
 
             }, 400 + Math.random() * 800);
         }
 
-        // 30秒ごとに広告をリフレッシュ
+        // 🚀 30秒ごとにad.htmlを強制リフレッシュ
         setInterval(() => {
-            ["ad-box-1", "ad-box-2"].forEach(id => {
-                const box = document.getElementById(id);
-                if (box && box.innerHTML.trim() !== "★") {
-                    const tag = box.innerHTML;
-                    box.innerHTML = "";
-                    setTimeout(() => { box.innerHTML = tag; }, 100);
+            ["frame-top", "frame-bottom"].forEach(id => {
+                const f = document.getElementById(id);
+                if(f) {
+                    const s = f.src; f.src = "about:blank";
+                    setTimeout(() => f.src = s, 100);
                 }
             });
-        }, 19980);
+        }, 29000);
     </script>
 </body>
 </html>
