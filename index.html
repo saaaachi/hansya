@@ -5,20 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reaction Level Up</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: sans-serif; color: white; touch-action: none; }
-        
-        /* 広告エリア：高さを150pxに設定（中サイズ対応） */
-        #ad-top, #ad-bottom { 
-            position: fixed; left: 0; width: 100%; height: 150px; 
-            background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; 
+        /* 画面を「上・中・下」に完全分離 */
+        body { 
+            margin: 0; height: 100vh; display: flex; flex-direction: column; 
+            background: #1a1a1a; font-family: sans-serif; color: white; overflow: hidden; touch-action: none; 
         }
-        #ad-top { top: 0; }
-        #ad-bottom { bottom: 0; }
         
-        iframe { border: none; width: 100%; height: 150px; }
-        
-        /* ゲームエリア：上下150pxを避けて配置 */
-        #game-area { margin-top: 150px; height: calc(100vh - 300px); position: relative; width: 100%; background: #222; overflow: hidden; }
+        /* 上下の広告枠 */
+        #ad-top, #ad-bottom { 
+            width: 100%; height: 120px; background: #333; 
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; z-index: 100;
+        }
+        iframe { border: none; width: 100%; height: 100%; }
+
+        /* ゲームエリア */
+        #game-area { 
+            flex-grow: 1; position: relative; width: 100%; background: #222; overflow: hidden; 
+        }
         
         #ui { position: absolute; top: 10px; width: 100%; text-align: center; font-size: 20px; font-weight: bold; pointer-events: none; z-index: 10; text-shadow: 2px 2px 4px #000; }
         
@@ -28,39 +31,67 @@
             display: none; box-shadow: 0 0 25px #fffa00; cursor: pointer; z-index: 20;
         }
 
-        /* スタート画面 */
-        #startScreen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50;
+        /* メニュー（ゲームオーバー）画面 */
+        #menuScreen { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.95); display: flex; flex-direction: column; 
+            align-items: center; justify-content: space-evenly; z-index: 200; padding: 20px 0; box-sizing: border-box;
         }
-        #goButton { padding: 15px 40px; font-size: 24px; background: #00d2ff; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px #008eb0; }
-        .best-info { color: #fffa00; margin-top: 20px; font-size: 18px; font-weight: bold; }
+
+        /* 真ん中広告の檻 */
+        #ad-middle-container { 
+            width: 300px; height: 250px; background: #333;
+            display: none; justify-content: center; align-items: center; 
+            overflow: hidden; position: relative; flex-shrink: 0;
+            border: 1px solid #444;
+        }
+        
+        .btn-group { display: flex; flex-direction: column; align-items: center; gap: 10px; flex-shrink: 0; }
+        .menu-btn { padding: 12px 30px; font-size: 18px; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; text-decoration: none; width: 240px; text-align: center; }
+        #goButton { background: #00d2ff; box-shadow: 0 4px #008eb0; }
+        .link-btn { background: #ff4081; box-shadow: 0 4px #c2185b; }
+        .best-info { color: #fffa00; font-size: 18px; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
 <body>
-
-    <div id="ad-top"><iframe id="frame-top" src="ad.html"></iframe></div>
-    <div id="ad-bottom"><iframe id="frame-bottom" src="ad.html"></iframe></div>
+    <div id="ad-top"><iframe src="ad.html"></iframe></div>
 
     <div id="game-area">
         <div id="ui">LV: <span id="lv">1</span> | BEST: <span id="best">1</span></div>
         <div id="target"></div>
         
-        <div id="startScreen">
-            <h1 style="color:#00d2ff; margin-bottom: 10px;">REACTION LV</h1>
-            <p>現れる丸を素早くタップ！</p>
-            <button id="goButton">GAME START</button>
-            <div class="best-info">BEST RECORD: LV <span id="best2">1</span></div>
+        <div id="menuScreen">
+            <div style="text-align:center;">
+                <h1 id="menuTitle" style="color:#00d2ff; margin:0;">REACTION LV</h1>
+                <p id="menuMsg" style="margin:5px 0;">現れる丸を素早くタップ！</p>
+                <div class="best-info">BEST RECORD: LV <span id="best2">1</span></div>
+            </div>
+
+            <div id="ad-middle-container">
+                <script src="https://adm.shinobi.jp/s/1e6de436ea850948e238e975a93767eb"></script>
+            </div>
+
+            <div class="btn-group" id="btnGroup">
+                <button id="goButton" class="menu-btn">GAME START</button>
+                <a href="https://saaaachi.github.io/Namber-Order/" class="menu-btn link-btn">他のゲームはこちら</a>
+            </div>
         </div>
     </div>
 
+    <div id="ad-bottom"><iframe src="ad.html"></iframe></div>
+
     <script>
-        const target = document.getElementById("target");
-        const lvDisp = document.getElementById("lv");
-        const bestDisp = document.getElementById("best");
-        const bestDisp2 = document.getElementById("best2");
-        const startScreen = document.getElementById("startScreen");
-        const gameArea = document.getElementById("game-area");
+        const target = document.getElementById("target"),
+              lvDisp = document.getElementById("lv"),
+              bestDisp = document.getElementById("best"),
+              bestDisp2 = document.getElementById("best2"),
+              menuScreen = document.getElementById("menuScreen"),
+              menuTitle = document.getElementById("menuTitle"),
+              menuMsg = document.getElementById("menuMsg"),
+              gameArea = document.getElementById("game-area"),
+              goButton = document.getElementById("goButton"),
+              adMid = document.getElementById("ad-middle-container"),
+              btnGroup = document.getElementById("btnGroup");
 
         let level = 1;
         let bestLevel = localStorage.getItem("reaction_best") || 1;
@@ -70,14 +101,16 @@
         bestDisp.innerText = bestLevel;
         bestDisp2.innerText = bestLevel;
 
-        document.getElementById("goButton").onclick = () => {
-            startScreen.style.display = "none";
+        window.onload = () => { adMid.style.display = "none"; };
+
+        goButton.onclick = () => {
+            menuScreen.style.display = "none";
+            adMid.style.display = "none";
             gameActive = true;
             level = 1;
             nextStep();
         };
 
-        // pointerdown を使って反応速度を向上（スマホ対応）
         target.onpointerdown = (e) => {
             e.preventDefault();
             if(!gameActive) return;
@@ -88,6 +121,7 @@
                 bestLevel = level;
                 localStorage.setItem("reaction_best", bestLevel);
                 bestDisp.innerText = bestLevel;
+                bestDisp2.innerText = bestLevel;
             }
             nextStep();
         };
@@ -97,7 +131,6 @@
             lvDisp.innerText = level;
             target.style.display = "none";
             
-            // 出現までの待ち時間
             setTimeout(() => {
                 if(!gameActive) return;
                 const maxX = gameArea.clientWidth - 85;
@@ -106,28 +139,38 @@
                 target.style.top = Math.random() * maxY + "px";
                 target.style.display = "block";
 
-                // 制限時間の計算（レベルが上がるとシビアに）
                 const limit = Math.max(300, 1500 - (level * 65));
-                
                 timer = setTimeout(() => {
-                    gameActive = false;
-                    alert("GAME OVER!\nREACHED LEVEL: " + level);
-                    location.reload();
+                    gameOver();
                 }, limit);
-
             }, 400 + Math.random() * 800);
         }
 
-        // 🚀 30秒ごとにad.htmlを強制リフレッシュ
+        function gameOver() {
+            gameActive = false;
+            target.style.display = "none";
+            menuTitle.innerText = "GAME OVER";
+            menuTitle.style.color = "#ff4757";
+            menuMsg.innerText = "REACHED LEVEL: " + level;
+            goButton.innerText = "RETRY";
+            
+            // 0.5秒のタメ
+            btnGroup.style.opacity = "0";
+            btnGroup.style.pointerEvents = "none";
+            adMid.style.display = "flex"; 
+            menuScreen.style.display = "flex";
+
+            setTimeout(() => {
+                btnGroup.style.opacity = "1";
+                btnGroup.style.pointerEvents = "auto";
+            }, 500);
+        }
+
         setInterval(() => {
-            ["frame-top", "frame-bottom"].forEach(id => {
-                const f = document.getElementById(id);
-                if(f) {
-                    const s = f.src; f.src = "about:blank";
-                    setTimeout(() => f.src = s, 100);
-                }
+            document.querySelectorAll('iframe').forEach(f => {
+                const s = f.src; f.src = "about:blank"; setTimeout(() => f.src = s, 100);
             });
-        }, 29000);
+        }, 30000);
     </script>
 </body>
 </html>
